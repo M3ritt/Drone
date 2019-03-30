@@ -1,0 +1,54 @@
+%travel right
+move([CurrX,CurrY],[RectX,CurrY]):- RectX is CurrX+1.
+%travel up
+move([CurrX,CurrY],[CurrX,RectY]):- RectY is CurrY+1.
+%travel down
+move([CurrX,CurrY],[CurrX,RectY]):- RectY is CurrY-1.
+
+
+%start program, StartX is always one in this case but never given
+start_Flying(Cave,[CaveWidth,CaveHeight],StartY,Path):-
+    flyy(Cave,[CaveWidth,CaveHeight],1,StartY,Path,[]).
+
+%base case
+fly(_,[CaveWidth,_],_,StartX,Path,REPEAT) :-
+	CaveWidth == StartX,
+        REPEAT == REPEAT,
+	write(Path).
+
+fly(Cave,[CaveWidth,CaveHeight],CurrY,CurrX,Path,REPEAT):-
+        move([CurrX,CurrY],[NextX,NextY]),
+        checkInsideCave([NextX,NextY],[CaveWidth,CaveHeight]),
+        hitting_wall([NextX,NextY], Cave),
+        visited([NextX,NextY],Path),
+        Temp_Path = [[NextX,NextY]|Path],
+        fly(Cave,[CaveWidth,CaveHeight],NextY,NextX,Temp_Path,REPEAT).
+
+in_cave([RectX, RectY, Width, Height], [SquareX, SquareY]) :-
+    SquareX > RectX,
+    SquareX =< Width+RectX,
+    SquareY > RectY,
+    SquareY =< Height+RectY,
+    SquareX >= 0,
+    SquareY >=0.
+
+checkInsideCave([CurrX,CurrY],[CaveX,CaveY]) :-
+	CaveX >= CurrX,
+	CaveY >= CurrY,
+	CurrX >=0,
+	CurrY >=0.
+
+hitting_wall([_,_],[_,_]).
+hitting_wall([CurrX,CurrY],[Head|Tail]):-
+	nth0(0,Head,NextX),
+	nth0(1,Head,NextY),
+	nth0(2,Head,Width),
+	nth0(3,Head,Height),
+	not(in_cave([NextX ,NextY ,Width,Height],[CurrX,CurrY])),
+	hitting_wall([CurrX,CurrY],Tail).
+
+%checks to see if the current position has been visited before.
+visited([_,_],[]).
+visited([CurrX,CurrY],[Head|Tail]):-
+	[CurrX,CurrY] \= Head,
+	visited([CurrX, CurrY],Tail).
